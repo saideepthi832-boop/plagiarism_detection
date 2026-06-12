@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Plagiarism Detector</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; }
+        .navbar { background: linear-gradient(135deg, #667eea, #764ba2); padding: 12px 30px; display: flex; justify-content: space-between; align-items: center; color: white; }
+        .navbar b { font-size: 18px; }
+        .navbar a { color: white; text-decoration: underline; }
+        .container { max-width: 750px; margin: 40px auto; padding: 0 20px; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 30px; font-size: 26px; }
+        .form-box { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        h3 { color: #34495e; margin-bottom: 15px; }
+        input[type="file"] { width: 100%; padding: 12px; margin: 8px 0 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        button:hover { opacity: 0.9; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* Result box */
+        .result-box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 2px 15px rgba(0,0,0,0.1); display: none; }
+
+        /* AI Card */
+        .ai-card { padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 2px solid; }
+        .ai-safe { border-color: #27ae60; background: #eafaf1; }
+        .ai-warning { border-color: #f39c12; background: #fef9e7; }
+        .ai-danger { border-color: #e74c3c; background: #fdedec; }
+        .ai-title { font-size: 16px; font-weight: bold; margin-bottom: 8px; color: #2c3e50; }
+        .progress-bar { height: 18px; background: #ecf0f1; border-radius: 10px; overflow: hidden; margin: 10px 0; }
+        .progress-fill { height: 100%; border-radius: 10px; transition: width 0.8s ease; }
+        .signals { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+        .signal-item { background: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; border: 1px solid #ddd; }
+
+        /* Plagiarism */
+        .plagiarism-section { margin-top: 25px; }
+        .plagiarism-section h3 { margin-bottom: 12px; }
+        .match { background: #fff3cd; padding: 12px; margin: 10px 0; border-left: 4px solid #ffc107; border-radius: 5px; font-size: 13px; line-height: 1.6; }
+        .match.high { border-left-color: #e74c3c; background: #fde8e8; }
+        .source-header { background: #f8f9fa; padding: 10px 15px; border-radius: 8px; margin: 15px 0 5px; font-weight: bold; color: #2c3e50; border-left: 4px solid #667eea; }
+        .no-plagiarism { color: #27ae60; font-size: 15px; font-weight: bold; padding: 15px; background: #eafaf1; border-radius: 8px; text-align: center; }
+        .loading { text-align: center; padding: 30px; color: #7f8c8d; font-size: 16px; }
+
+        /* ChatGPT warning box */
+        .chatgpt-warning { margin-top: 12px; padding: 12px; background: rgba(231,76,60,0.12); border-radius: 8px; font-size: 13px; border: 1px solid rgba(231,76,60,0.3); }
+
+        /* Phrase tags */
+        .phrase-tag { background: white; padding: 3px 10px; border-radius: 12px; margin: 3px; font-size: 12px; display: inline-block; border: 1px solid #ddd; color: #e74c3c; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <b>🔍 AI Plagiarism Detector</b>
+    <span>{{ user.name }} ({{ user.role }}) &nbsp;|&nbsp; <a href="/logout">Logout</a></span>
+</div>
+
+<div class="container">
+    <h1>Submit Your Assignment</h1>
+
+    <div class="form-box">
+        <h3>📁 Upload File (PDF, DOCX, TXT)</h3>
+        <input type="file" id="file" accept=".pdf,.docx,.txt">
+        <button id="submitBtn" onclick="submitForm()">
+            🔍 Check for Plagiarism & AI Content
+        </button>
+    </div>
+
+    <div class="result-box" id="result">
+        <div class="loading">⏳ Analyzing...</div>
+    </div>
+</div>
+
+<script>
+    async function submitForm() {
+        const file = document.getElementById('file').files[0];
+        if (!file) {
+            alert('Please choose a file to upload');
+            return;
+        }
+
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = '⏳ Analyzing...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const resultBox = document.getElementById('result');
+        resultBox.style.display = 'block';
+        resultBox.innerHTML = '<div class="loading">⏳ Analyzing your document with AI...<br><small>This may take 10-20 seconds</small></div>';
+
+        try {
+            const res = await fetch('/submit', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                resultBox.innerHTML = '<p style="color:red">❌ Error: ' + data.error + '</p>';
+            } else {
+                renderReport(data);
+            }
+        } catch(e) {
+            resultBox.innerHTML = '<p style="color:red">❌ Error analyzing file. Please try again.</p>';
+        }
+
+        btn.disabled = false;
+        btn.textContent = '🔍 Check for Plagiarism & AI Content';
+    }
+
+    function renderReport(data) {
+        const ai = data.ai_detection;
+        const prob = ai.ai_probability;
+
+        let aiClass = prob >= 65 ? 'ai-danger' : prob >= 35 ? 'ai-warning' : 'ai-safe';
+        let fillColor = prob >= 65 ? '#e74c3c' : prob >= 35 ? '#f39c12' : '#27ae60';
+
+        let html = '<h3 style="margin-bottom:20px">📊 Analysis Report for <span style="color:#667eea">' + data.student + '</span></h3>';
+
+        // ── AI / ChatGPT Detection Card ──
+        html += '<div class="ai-card ' + aiClass + '">';
+        html += '<div class="ai-title">🤖 ChatGPT / AI Content Detection</div>';
+        html += '<div style="font-size:22px;font-weight:bold;margin-bottom:8px">' + ai.verdict + '</div>';
+        html += '<div class="progress-bar">';
+        html += '<div class="progress-fill" style="width:' + prob + '%;background:' + fillColor + '"></div>';
+        html += '</div>';
+        html += '<div style="font-size:14px">AI Probability: <b>' + prob + '%</b>';
+        if (ai.method) {
+            html += ' &nbsp;|&nbsp; <i style="color:#888;font-size:12px">Detection method: ' + ai.method + '</i>';
+        }
+        html += '</div>';
+
+        // Found ChatGPT phrases
+        if (ai.found_phrases && ai.found_phrases.length > 0) {
+            html += '<div style="margin-top:12px"><b>🔍 ChatGPT phrases detected:</b><br>';
+            ai.found_phrases.forEach(p => {
+                html += '<span class="phrase-tag">"' + p + '"</span>';
+            });
+            html += '</div>';
+        }
+
+        // Signal badges
+        html += '<div class="signals">';
+        html += '<div class="signal-item">📉 Perplexity: ' + ai.signals.perplexity + '</div>';
+        html += '<div class="signal-item">📏 Avg Sentence: ' + ai.signals.avg_sentence_length + ' words</div>';
+        html += '<div class="signal-item">📚 Vocab Richness: ' + (ai.signals.vocabulary_richness * 100).toFixed(0) + '%</div>';
+        html += '<div class="signal-item">💬 AI Phrases Found: ' + ai.signals.chatgpt_phrases_found + '</div>';
+        html += '</div>';
+
+        // Strong ChatGPT warning
+        if (ai.is_chatgpt) {
+            html += '<div class="chatgpt-warning">';
+            html += '⚠️ <b>Warning:</b> This submission shows strong indicators of ChatGPT-generated content. ';
+            html += 'The writing style, vocabulary, and structure are consistent with AI-generated text. ';
+            html += 'Please review this submission carefully.';
+            html += '</div>';
+        }
+
+        html += '</div>'; // end ai-card
+
+        // ── Plagiarism Check Section ──
+        html += '<div class="plagiarism-section">';
+        html += '<h3>🔎 Plagiarism Check (vs Previous Submissions)</h3>';
+
+        if (!data.report || data.report.length === 0) {
+            html += '<div class="no-plagiarism">✅ No plagiarism detected! This appears to be original work.</div>';
+        } else {
+            const seen = new Set();
+            let found = false;
+
+            data.report.forEach(r => {
+                if (seen.has(r.source)) return;
+                seen.add(r.source);
+                if (r.overall_similarity < 5) return;
+
+                found = true;
+                html += '<div class="source-header">';
+                html += 'vs. <b>' + r.source + '</b> — Overall Similarity: ';
+                html += '<span style="color:#e74c3c;font-size:16px">' + r.overall_similarity + '%</span>';
+                html += '</div>';
+
+                r.matches.slice(0, 3).forEach(m => {
+                    html += '<div class="match ' + (m.score > 90 ? 'high' : '') + '">';
+                    html += '<b>Match Score: ' + m.score + '%</b><br>';
+                    html += '<b>Your text:</b> ' + m.new_sentence + '<br>';
+                    html += '<b>Matched with:</b> ' + m.matched_sentence;
+                    html += '</div>';
+                });
+            });
+
+            if (!found) {
+                html += '<div class="no-plagiarism">✅ Similarity below threshold. Looks original!</div>';
+            }
+        }
+
+        html += '</div>'; // end plagiarism section
+
+        document.getElementById('result').innerHTML = html;
+    }
+</script>
+
+</body>
+</html>

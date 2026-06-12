@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Login - AI Plagiarism Detector</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: linear-gradient(135deg, #667eea, #764ba2); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .card { background: white; padding: 40px; border-radius: 16px; width: 100%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        h2 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 24px; }
+        .logo { text-align: center; font-size: 40px; margin-bottom: 10px; }
+        label { display: block; margin-bottom: 5px; color: #555; font-size: 14px; font-weight: bold; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 14px; }
+        input:focus { outline: none; border-color: #667eea; }
+        button { width: 100%; padding: 13px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        button:hover { opacity: 0.9; }
+        .link { text-align: center; margin-top: 15px; font-size: 14px; color: #666; }
+        .link a { color: #667eea; text-decoration: none; font-weight: bold; }
+        .flash { padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; }
+        .flash.error { background: #fde8e8; color: #e74c3c; border: 1px solid #e74c3c; }
+        .flash.success { background: #eafaf1; color: #27ae60; border: 1px solid #27ae60; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <div class="logo">🔍</div>
+    <h2>AI Plagiarism Detector</h2>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+    <form method="POST">
+        <label>Email</label>
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter your password" required>
+        <button type="submit">Login</button>
+    </form>
+    <div class="link">Don't have an account? <a href="/register">Register here</a></div>
+</div>
+</body>
+</html>
