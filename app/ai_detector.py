@@ -2,19 +2,8 @@ import re
 import math
 from collections import Counter
 
-try:
-    from transformers import pipeline
-    ai_classifier = pipeline(
-        "text-classification",
-        model="roberta-base-openai-detector",
-        truncation=True,
-        max_length=512
-    )
-    MODEL_LOADED = True
-    print("✅ AI detector model loaded!")
-except Exception as e:
-    print(f"⚠️ AI model not loaded: {e}")
-    MODEL_LOADED = False
+MODEL_LOADED = False
+ai_classifier = None
 
 
 def get_sentences(text):
