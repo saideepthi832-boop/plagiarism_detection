@@ -5,11 +5,17 @@ A web-based AI-powered plagiarism detection system that detects both copied/para
 📌 Features
 
 ✅ Semantic Plagiarism Detection — Uses Sentence-BERT + Cosine Similarity to detect paraphrased content (not just copy-paste)
+
 🤖 AI Content Detection — Identifies ChatGPT-generated text using phrase analysis, perplexity scoring, and sentence uniformity checks
+
 📄 Multi-Format Support — Accepts PDF, DOCX, and TXT files
+
 👤 Role-Based Access — Separate interfaces for Students and Instructors
+
 📊 Instructor Dashboard — View all submissions with plagiarism %, AI verdict, and IST timestamps
+
 🎯 Color-Coded Reports — Green (0-24%), Yellow (25-49%), Orange (50-74%), Red (75%+)
+
 ☁️ Cloud Deployed — Hosted on Hugging Face Spaces using Docker
 
 ⚙️ Local Setup
